@@ -48,8 +48,23 @@ function DemoPage() {
     setProgress(5);
     setStatus("Requesting camera access...");
     try {
-      if (typeof navigator === "undefined" || !navigator.mediaDevices) {
-        throw new Error("Camera API unavailable in this environment.");
+      if (typeof window !== "undefined" && window.top !== window.self) {
+        throw new Error(
+          "Camera blocked: this page is running inside an iframe (Lovable preview). " +
+          "Click the ↗ button in the top-right of the preview to open it in a new tab, " +
+          "then press INITIALIZE again.",
+        );
+      }
+      if (typeof window !== "undefined" && !window.isSecureContext) {
+        throw new Error(
+          "Camera blocked: getUserMedia requires a secure context. " +
+          "Use http://localhost (not your LAN IP) or HTTPS.",
+        );
+      }
+      if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+        throw new Error(
+          "Camera API unavailable. Use a Chromium-based browser (Chrome/Edge/Brave) on the latest version.",
+        );
       }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },

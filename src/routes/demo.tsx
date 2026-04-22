@@ -149,7 +149,15 @@ function DemoPage() {
             </Link>
           </div>
         )}
-        <div className={`flex-1 min-h-0 ${showInit ? "hidden" : "flex"} gap-2 p-2`}>
+        {/*
+          SensorPanel must stay mounted even before init so the <video> and
+          <canvas> DOM nodes the engine grabs by id are the SAME nodes the
+          user eventually sees. Toggling them on init swaps in fresh DOM and
+          leaves the engine holding detached references (black screen).
+        */}
+        <div
+          className={`flex-1 min-h-0 gap-2 p-2 flex ${showInit ? "invisible absolute inset-0 pointer-events-none" : ""}`}
+        >
           <div className="flex-1 min-w-0 flex flex-col">
             <SensorPanel onSetOrigin={handleSetOrigin} />
           </div>
@@ -161,12 +169,6 @@ function DemoPage() {
             onReconnect={handleReconnect}
           />
         </div>
-        {showInit && (
-          <div className="absolute opacity-0 pointer-events-none -z-10" aria-hidden>
-            <video id="omnipoint-video" autoPlay playsInline muted />
-            <canvas id="omnipoint-canvas" width={1280} height={720} />
-          </div>
-        )}
         {showInit && (
           <div className="flex-1 relative">
             <div className="absolute top-3 left-3 z-50">

@@ -7,10 +7,22 @@ interface Props {
   bridgeUrl: string;
   setBridgeUrl: (url: string) => void;
   onReconnect: () => void;
+  onTestBridge: () => void;
 }
 
-export function TelemetryPanel({ config, setConfig, bridgeUrl, setBridgeUrl, onReconnect }: Props) {
+export function TelemetryPanel({ config, setConfig, bridgeUrl, setBridgeUrl, onReconnect, onTestBridge }: Props) {
   const t = useTelemetry();
+  const probe = t.bridgeProbe;
+  const probeColor =
+    probe === "ok" ? "text-emerald-glow border-primary/60"
+    : probe === "failed" ? "text-destructive border-destructive/60"
+    : probe === "probing" ? "text-foreground border-border animate-pulse"
+    : "text-muted-foreground border-border";
+  const probeDot =
+    probe === "ok" ? "bg-primary"
+    : probe === "failed" ? "bg-destructive"
+    : probe === "probing" ? "bg-yellow-400 animate-pulse"
+    : "bg-muted-foreground/50";
   return (
     <aside className="flex flex-col panel w-[360px] shrink-0">
       <div className="flex items-center justify-between border-b hairline px-3 h-9">
@@ -95,12 +107,33 @@ export function TelemetryPanel({ config, setConfig, bridgeUrl, setBridgeUrl, onR
           spellCheck={false}
           className="w-full mt-1 h-8 px-2 bg-input border border-border font-mono text-[12px] text-foreground focus:outline-none focus:border-primary"
         />
-        <button
-          onClick={onReconnect}
-          className="mt-2 w-full h-8 font-mono text-[11px] tracking-[0.2em] border border-primary/60 text-primary hover:bg-primary/10"
-        >
-          ⟳ RECONNECT
-        </button>
+        <div className="mt-2 grid grid-cols-2 gap-1">
+          <button
+            onClick={onTestBridge}
+            disabled={probe === "probing"}
+            className={`h-8 font-mono text-[11px] tracking-[0.2em] border ${probeColor} hover:bg-primary/10 disabled:opacity-60 disabled:cursor-wait`}
+          >
+            {probe === "probing" ? "◌ TESTING…" : "◉ TEST BRIDGE"}
+          </button>
+          <button
+            onClick={onReconnect}
+            className="h-8 font-mono text-[11px] tracking-[0.2em] border border-primary/60 text-primary hover:bg-primary/10"
+          >
+            ⟳ RECONNECT
+          </button>
+        </div>
+        <div className="mt-2 flex items-center gap-2 px-2 h-7 border hairline bg-card/60">
+          <span className={`inline-block w-2 h-2 rounded-full ${probeDot}`} />
+          <span className="font-mono text-[10px] text-muted-foreground tracking-[0.2em]">STATUS</span>
+          <span className="ml-auto font-mono text-[10px] text-foreground truncate" title={t.bridgeProbeMsg}>
+            {t.bridgeProbeMsg}{t.bridgeProbeRttMs ? ` · ${t.bridgeProbeRttMs}ms` : ""}
+          </span>
+        </div>
+        {!t.bridgeValidated && (
+          <p className="mt-2 font-mono text-[10px] leading-relaxed text-yellow-300/80">
+            ⚠ HID emission disabled until bridge is validated. Camera tracking still runs.
+          </p>
+        )}
         <p className="mt-2 font-mono text-[10px] leading-relaxed text-muted-foreground">
           Run <span className="text-foreground">bridge/omnipoint_bridge.py</span> on your Linux box to enable system-wide cursor control.
         </p>

@@ -3,6 +3,7 @@
 
 export type WSState = "disconnected" | "connecting" | "connected" | "stopped";
 export type GestureKind = "none" | "click" | "drag" | "scroll_up" | "scroll_down";
+export type BridgeProbe = "idle" | "probing" | "ok" | "failed";
 
 export interface TelemetrySnapshot {
   fps: number;
@@ -17,6 +18,10 @@ export interface TelemetrySnapshot {
   emergencyStop: boolean;
   sensorLost: boolean;
   initialized: boolean;
+  bridgeProbe: BridgeProbe;
+  bridgeValidated: boolean;
+  bridgeProbeMsg: string;
+  bridgeProbeRttMs: number;
 }
 
 const initial: TelemetrySnapshot = {
@@ -32,6 +37,10 @@ const initial: TelemetrySnapshot = {
   emergencyStop: false,
   sensorLost: false,
   initialized: false,
+  bridgeProbe: "idle",
+  bridgeValidated: false,
+  bridgeProbeMsg: "Not tested",
+  bridgeProbeRttMs: 0,
 };
 
 let snapshot: TelemetrySnapshot = { ...initial };

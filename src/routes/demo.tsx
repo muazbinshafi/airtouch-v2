@@ -126,6 +126,19 @@ function DemoPage() {
   const handleReconnect = useCallback(() => {
     if (!bridgeRef.current) return;
     bridgeRef.current.setUrl(bridgeUrl);
+    bridgeRef.current.invalidate();
+  }, [bridgeUrl]);
+
+  const handleTestBridge = useCallback(async () => {
+    if (!bridgeRef.current) {
+      // Bridge not yet constructed (pre-init): build a transient one just for probing.
+      const { HIDBridge: HB } = await import("@/lib/omnipoint/HIDBridge");
+      const tmp = new HB(bridgeUrl);
+      await tmp.probe();
+      return;
+    }
+    bridgeRef.current.setUrl(bridgeUrl);
+    await bridgeRef.current.probe();
   }, [bridgeUrl]);
 
   const handleSetOrigin = useCallback(() => {
@@ -167,6 +180,7 @@ function DemoPage() {
             bridgeUrl={bridgeUrl}
             setBridgeUrl={setBridgeUrl}
             onReconnect={handleReconnect}
+            onTestBridge={handleTestBridge}
           />
         </div>
         {showInit && (
@@ -190,6 +204,6 @@ function DemoPage() {
         )}
       </main>
     ),
-    [showInit, status, progress, error, initialize, initializing, config, setConfig, bridgeUrl, handleEmergencyToggle, handleReconnect, handleSetOrigin],
+    [showInit, status, progress, error, initialize, initializing, config, setConfig, bridgeUrl, handleEmergencyToggle, handleReconnect, handleSetOrigin, handleTestBridge],
   );
 }

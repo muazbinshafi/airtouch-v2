@@ -6,7 +6,7 @@
 
 **Wave your hand → the OS cursor moves.** No special hardware. No drivers. Just a webcam, a browser tab, and a tiny Linux daemon.
 
-[**▶ Live Demo**](#-quickstart) · [**Architecture**](#-architecture) · [**Gestures**](#-gesture-library) · [**Roadmap**](#-roadmap)
+[**▶ Quickstart**](#-quickstart) · [**Full setup guide →**](./SETUP.md) · [**Architecture**](#-architecture) · [**Gestures**](#-gesture-library) · [**Roadmap**](#-roadmap)
 
 ![status](https://img.shields.io/badge/status-active-10b981?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-10b981?style=flat-square)
@@ -41,6 +41,9 @@ The result: you can pinch the air to click anything on screen — your file mana
 ## 🚀 Quickstart
 
 You need **two things running**: the web app (in your browser) and the bridge daemon (on Linux). The web app is enough on its own to see the gesture detection — the daemon is what makes it actually move your cursor.
+
+> 📖 **Need step-by-step instructions, troubleshooting, and platform notes?**
+> See **[SETUP.md](./SETUP.md)** — the full end-to-end install & run guide.
 
 ### 1 · Web app
 

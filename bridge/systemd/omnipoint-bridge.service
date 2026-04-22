@@ -1,0 +1,12 @@
+[Unit]
+Description=OmniPoint gesture-to-HID bridge
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/omnipoint/bridge/.venv/bin/python %h/omnipoint/bridge/omnipoint_bridge.py --host 127.0.0.1 --port 8765
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

@@ -56,22 +56,35 @@ log.info("Screen size: %dx%d", SCREEN_W, SCREEN_H)
 
 
 def handle_packet(pkt: dict[str, Any]) -> dict[str, Any] | None:
-    t = pkt.get("type")
+    # Accept both schemas:
+    #   1. {"type": "...", ...}                       (native daemon protocol)
+    #   2. {"event": "...", "data": {...}}            (web app MotionPayload)
+    t = pkt.get("type") or pkt.get("event")
+    data = pkt.get("data") if isinstance(pkt.get("data"), dict) else pkt
+
     if t == "ping":
         return {"type": "pong"}
-    if t == "move":
-        x = max(0.0, min(1.0, float(pkt.get("x", 0))))
-        y = max(0.0, min(1.0, float(pkt.get("y", 0))))
+    if t == "heartbeat":
+        return None
+    if t in ("move", "motion"):
+        x = max(0.0, min(1.0, float(data.get("x", 0))))
+        y = max(0.0, min(1.0, float(data.get("y", 0))))
         mouse.position = (int(x * SCREEN_W), int(y * SCREEN_H))
+        # Map gesture-driven press/release if the web app included one.
+        gesture = data.get("gesture")
+        if gesture == "pinch":
+            mouse.press(Button.left)
+        elif gesture in ("release", "open", "idle"):
+            mouse.release(Button.left)
     elif t == "click":
-        btn = Button.right if pkt.get("button") == "right" else Button.left
+        btn = Button.right if data.get("button") == "right" else Button.left
         mouse.click(btn, 1)
     elif t == "down":
         mouse.press(Button.left)
     elif t == "up":
         mouse.release(Button.left)
     elif t == "scroll":
-        mouse.scroll(int(pkt.get("dx", 0)), int(pkt.get("dy", 0)))
+        mouse.scroll(int(data.get("dx", 0)), int(data.get("dy", 0)))
     else:
         log.warning("Unknown packet type: %s", t)
     return None

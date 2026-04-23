@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 interface Props {
   status: string;
   progress: number;
@@ -7,6 +9,7 @@ interface Props {
 }
 
 export function InitScreen({ status, progress, error, onInitialize, initializing }: Props) {
+  const [showRemote, setShowRemote] = useState(false);
   if (error) {
     return (
       <div className="h-full w-full flex items-center justify-center bg-background scan-grid">
@@ -21,12 +24,21 @@ export function InitScreen({ status, progress, error, onInitialize, initializing
             <li>• Use Chromium / Chrome for GPU MediaPipe delegate.</li>
             <li>• Check network access to MediaPipe CDN.</li>
           </ul>
-          <button
-            onClick={onInitialize}
-            className="font-mono text-[11px] tracking-[0.25em] px-4 h-9 border border-primary text-primary hover:bg-primary/10"
-          >
-            ⟳ RETRY
-          </button>
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={onInitialize}
+              className="font-mono text-[11px] tracking-[0.25em] px-4 h-9 border border-primary text-primary hover:bg-primary/10"
+            >
+              ⟳ RETRY
+            </button>
+            <button
+              onClick={() => setShowRemote((v) => !v)}
+              className="font-mono text-[11px] tracking-[0.25em] px-4 h-9 border hairline text-muted-foreground hover:text-foreground"
+            >
+              {showRemote ? "✕ HIDE REMOTE ACCESS" : "⇄ REMOTE ACCESS / SSH"}
+            </button>
+          </div>
+          {showRemote && <RemoteAccessHelp />}
         </div>
       </div>
     );
@@ -81,6 +93,14 @@ export function InitScreen({ status, progress, error, onInitialize, initializing
           Camera access is required. Video is processed locally in your browser; no frames are uploaded.
           For system-wide cursor control on Linux, run the bridge daemon shipped in <span className="text-foreground">bridge/</span>.
         </p>
+
+        <button
+          onClick={() => setShowRemote((v) => !v)}
+          className="mt-4 font-mono text-[10px] tracking-[0.3em] text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
+        >
+          {showRemote ? "✕ HIDE REMOTE ACCESS" : "⇄ ACCESSING FROM ANOTHER MACHINE? (SSH / HTTPS)"}
+        </button>
+        {showRemote && <RemoteAccessHelp />}
       </div>
     </div>
   );
@@ -91,6 +111,78 @@ function Spec({ k, v }: { k: string; v: string }) {
     <div>
       <div className="text-muted-foreground tracking-[0.25em]">{k}</div>
       <div className="text-foreground tracking-[0.15em]">{v}</div>
+    </div>
+  );
+}
+
+function RemoteAccessHelp() {
+  return (
+    <div className="mt-5 border hairline p-4 bg-card/40 font-mono text-[11px] leading-relaxed text-muted-foreground space-y-4">
+      <div>
+        <div className="text-foreground tracking-[0.25em] text-[10px] mb-2">
+          ▌ WHY THIS ERROR
+        </div>
+        Browsers block <span className="text-foreground">getUserMedia</span> on
+        non-secure origins. <span className="text-foreground">http://localhost</span> and
+        <span className="text-foreground"> https://</span> are allowed; raw LAN IPs
+        like <span className="text-foreground">http://192.168.x.x</span> are not.
+      </div>
+
+      <div>
+        <div className="text-emerald-glow tracking-[0.25em] text-[10px] mb-2">
+          ▌ OPTION A · SSH PORT FORWARD (RECOMMENDED)
+        </div>
+        Run the dev server on the remote host, then forward both the Vite port
+        (3000) and the bridge port (8765) to your local machine. Everything
+        appears as <span className="text-foreground">localhost</span> in your browser:
+        <pre className="mt-2 p-3 bg-background border hairline text-foreground text-[10.5px] overflow-x-auto whitespace-pre">
+{`# on your laptop — forward both ports from the remote host
+ssh -N \\
+  -L 3000:localhost:3000 \\
+  -L 8765:localhost:8765 \\
+  user@remote-host
+
+# on the remote host (in another terminal):
+bun dev                          # serves on :3000
+python3 bridge/omnipoint_bridge.py   # serves on :8765
+
+# then on your laptop, open:
+http://localhost:3000/demo`}
+        </pre>
+        <div className="mt-2">
+          Bridge URL stays at <span className="text-foreground">ws://localhost:8765</span>.
+          Camera works because the origin is <span className="text-foreground">localhost</span>.
+        </div>
+      </div>
+
+      <div>
+        <div className="text-emerald-glow tracking-[0.25em] text-[10px] mb-2">
+          ▌ OPTION B · CLOUDFLARED / NGROK TUNNEL
+        </div>
+        Get a public HTTPS URL pointing at your local dev server:
+        <pre className="mt-2 p-3 bg-background border hairline text-foreground text-[10.5px] overflow-x-auto whitespace-pre">
+{`cloudflared tunnel --url http://localhost:3000
+# or
+ngrok http 3000`}
+        </pre>
+        <div className="mt-2">
+          Note: a public HTTPS page cannot reach <span className="text-foreground">ws://localhost:8765</span> due
+          to mixed-content rules — tunnel the bridge too if you need the OS cursor.
+        </div>
+      </div>
+
+      <div>
+        <div className="text-emerald-glow tracking-[0.25em] text-[10px] mb-2">
+          ▌ OPTION C · LOCAL HTTPS ON THE LAN
+        </div>
+        <pre className="p-3 bg-background border hairline text-foreground text-[10.5px] overflow-x-auto whitespace-pre">
+{`bun add -d @vitejs/plugin-basic-ssl
+# then in vite.config.ts:
+#   import basicSsl from '@vitejs/plugin-basic-ssl';
+#   defineConfig({ vite: { plugins: [basicSsl()] } });
+bun dev   # → https://<lan-ip>:3000/demo (accept self-signed cert)`}
+        </pre>
+      </div>
     </div>
   );
 }

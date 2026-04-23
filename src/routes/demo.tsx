@@ -147,8 +147,7 @@ function DemoPage() {
   const handleTestBridge = useCallback(async () => {
     if (!bridgeRef.current) {
       // Bridge not yet constructed (pre-init): build a transient one just for probing.
-      const { HIDBridge: HB } = await import("@/lib/omnipoint/HIDBridge");
-      const tmp = new HB(bridgeUrl);
+      const tmp = new HIDBridge(bridgeUrl);
       await tmp.probe();
       return;
     }

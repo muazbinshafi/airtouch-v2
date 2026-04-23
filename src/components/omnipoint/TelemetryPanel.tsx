@@ -130,8 +130,9 @@ export function TelemetryPanel({ config, setConfig, bridgeUrl, setBridgeUrl, onR
           </span>
         </div>
         {!t.bridgeValidated && (
-          <p className="mt-2 font-mono text-[10px] leading-relaxed text-yellow-300/80">
-            ⚠ HID emission disabled until bridge is validated. Camera tracking still runs.
+          <p className="mt-2 font-mono text-[10px] leading-relaxed text-yellow-300/90">
+            ⚠ OS cursor control is OFF. Camera tracking runs, but no mouse events are sent.
+            <br />→ Click <span className="text-yellow-200 font-bold">◉ TEST BRIDGE</span> above to enable.
           </p>
         )}
         <p className="mt-2 font-mono text-[10px] leading-relaxed text-muted-foreground">

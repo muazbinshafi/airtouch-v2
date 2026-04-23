@@ -130,9 +130,12 @@ export function TelemetryPanel({ config, setConfig, bridgeUrl, setBridgeUrl, onR
           </span>
         </div>
         {!t.bridgeValidated && (
-          <p className="mt-2 font-mono text-[10px] leading-relaxed text-yellow-300/80">
-            ⚠ HID emission disabled until bridge is validated. Camera tracking still runs.
-          </p>
+          <div className="mt-2 p-2 border border-destructive/50 bg-destructive/10">
+            <p className="font-mono text-[10px] leading-relaxed text-destructive">
+              ⚠ OS cursor control is OFF. Camera tracking runs, but no mouse events are sent.
+              <br />→ Click <span className="font-bold underline">◉ TEST BRIDGE</span> above to enable.
+            </p>
+          </div>
         )}
         <p className="mt-2 font-mono text-[10px] leading-relaxed text-muted-foreground">
           Run <span className="text-foreground">bridge/omnipoint_bridge.py</span> on your Linux box to enable system-wide cursor control.

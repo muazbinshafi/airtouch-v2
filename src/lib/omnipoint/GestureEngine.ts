@@ -91,18 +91,30 @@ export class GestureEngine {
       "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/wasm",
     );
     onProgress?.("Loading HandLandmarker model...");
-    this.landmarker = await HandLandmarker.createFromOptions(fileset, {
-      baseOptions: {
-        modelAssetPath:
-          "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-        delegate: "GPU",
-      },
+    const baseOpts = {
       numHands: 1,
-      runningMode: "VIDEO",
+      runningMode: "VIDEO" as const,
       minHandDetectionConfidence: 0.5,
       minHandPresenceConfidence: 0.5,
       minTrackingConfidence: 0.5,
-    });
+    };
+    const modelAssetPath =
+      "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+    try {
+      this.landmarker = await HandLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath, delegate: "GPU" },
+        ...baseOpts,
+      });
+      console.info("[OmniPoint] HandLandmarker initialized (GPU delegate)");
+    } catch (gpuErr) {
+      console.warn("[OmniPoint] GPU delegate failed, falling back to CPU:", gpuErr);
+      onProgress?.("GPU unavailable — falling back to CPU...");
+      this.landmarker = await HandLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath, delegate: "CPU" },
+        ...baseOpts,
+      });
+      console.info("[OmniPoint] HandLandmarker initialized (CPU delegate)");
+    }
     onProgress?.("Sensor ready.");
   }
 
